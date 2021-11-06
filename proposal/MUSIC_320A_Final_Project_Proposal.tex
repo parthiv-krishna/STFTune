@@ -1,0 +1,52 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage[margin=1in]{geometry}
+
+\title{MUSIC 320A Final Project Proposal}
+\author{Parthiv Krishna, Autumn 2021}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+The purpose of the proposed final project is to design, implement, and test a DFT-Based Pitch Modulation ("AutoTune") System. This will take the form of an algorithm that can take in some input signal and modulate the pitch of the various notes in the signal, with the goal of modifying the melody present in the audio signal. Initially, the system will be able to process pure sinusoids; a second iteration would augment it to process more complex signals (e.g. vioo10\_2.wav).
+
+\section{Method}
+
+The proposed method is a four-step process that 
+
+\begin{enumerate}
+    \item Takes an input signal and analyzes via STFT to extract the underlying frequency content and how it evolves over time
+    \item Processes the frequency content of the signal to determine note boundaries and extract individual notes
+    \item Shifts the signal’s pitch in the frequency domain via preprogrammed offsets and/or a GUI 
+    \item Synthesizes a new, modulated signal based on the shifted frequency-domain content
+
+\end{enumerate}
+
+\section{Timeline}
+The planned timeline for the project is as follows:
+\begin{itemize}
+    \item \textbf{November 3 - 10}: Setup code repository, read about STFT and spectrograms, write function to compute STFT of signal, write function to compute STFT similarity.
+    \item \textbf{November 11 - 17}: Write function to determine notes via STFT similarity (sinusoid), determine format of data to shift frequency, write function to shift signal pitch in frequency domain (sinusoid).
+    \item \textbf{November 18 - 24}: Write function to synthesize pitch-shifted signal, test with sinusoid, update STFT note logic to work with more general signals, update synthesis logic to work with more general signals.
+    \item \textbf{November 25 - 28}: Test with more general signal, writeup, presentation.
+    
+\end{itemize}
+
+\section{References}
+\hspace{4mm} Julius Smith. Spectral Audio Signal Processing. \url{https://ccrma.stanford.edu/~jos/sasp/}
+
+\vspace{3mm}
+
+M. R. Portnoff. Implementation of the digital phase vocoder using the fast Fourier transform. IEEE Trans. Acoust., Speech, Signal Processing, vol. ASSP-29, pp. 374-387, June 1981.
+
+\vspace{3mm}
+
+M. R. Portnoff. Time-scale modification of speech based on short-time Fourier analysis. IEEE Trans. Acoust., Speech, Signal Processing, vol. ASSP-24, pp. 243–248, June 1976.
+
+
+\end{document}
