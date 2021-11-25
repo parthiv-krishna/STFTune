@@ -1,7 +1,13 @@
 import numpy as np
 
 class Note:
-    """Class to store a note in the STFT spectrum"""
+    """Class to store a note in the STFT spectrum.
+    
+    Each Note must be initialized/updated with the update method.
+    Once all updates are complete, the start_time, end_time, length,
+    and frequency properties will be populated and accessible.
+    
+    """
 
     def __init__(self, freq_thresh, note_gap_time):
         """Initializes an instance of the Note class
@@ -16,6 +22,16 @@ class Note:
 
         self.freq_thresh = freq_thresh
         self.note_gap_time = note_gap_time
+
+    def __str__(self):
+        """Gives a string representation of the Note"""
+        if self.freq is None:
+            return "Uninitialized note"
+        return f"{self.frequency:.2f} Hz from {self.start_time:.2f}s to {self.end_time:.2f}s"
+
+    def __repr__(self):
+        """Gives a string representation of the Note"""
+        return self.__str__()
 
     def update(self, sample_freq, sample_time):
         """Updates the Note with a new sample
