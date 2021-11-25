@@ -38,3 +38,20 @@ def synthesis(Zxx, fs=44_100):
                                    window="hann")
     
     return x
+
+def spectrogram(Zxx, f, t, title="Spectrogram"):
+    """Draws a spectrogram for a given STFT matrix
+
+    Args:
+        Zxx (np.ndarray): Complex STFT values.
+        f (np.ndarray): The frequencies for each row of Zxx.
+        t (np.ndarray): The times for each column of Zxx.
+        title (str, optional): Title for the chart. Defaults to "Spectrogram".
+    """
+    dBFS = 10*np.log10(np.abs(Zxx) + 1e-9)
+    plt.figure()
+    plt.pcolormesh(t, f, dBFS, shading='gouraud')
+    plt.title(title)
+    plt.xlabel("Time (s)")
+    plt.ylabel("Frequency (Hz)")
+    plt.show()
