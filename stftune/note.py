@@ -76,20 +76,52 @@ class Note:
             note_octave: int representing the note octave
         """
 
-        NOTE_NAMES = ['A', 'Bb', 'B', 'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#']
+        NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
         SEMITONE = 2**(1/12) # A semitone in just intonation is a ratio of 2^(1/12)
 
         # A4 is defined as 440 Hz (or 432 Hz if you're that kind of person...)
         BASE_FREQ = 440
         BASE_OCTAVE = 4
+        BASE_INDEX = NOTE_NAMES.index('A')
 
         # Find how many semitones from A4 we are
         ratio = frequency / BASE_FREQ
         semitones_from_base = round(np.log(ratio) / np.log(SEMITONE))
 
-        note_name = NOTE_NAMES[semitones_from_base % len(NOTE_NAMES)]
-        note_octave = BASE_OCTAVE + (semitones_from_base // len(NOTE_NAMES))
+        note_name = NOTE_NAMES[(semitones_from_base + BASE_INDEX) % len(NOTE_NAMES)]
+        note_octave = BASE_OCTAVE + ((semitones_from_base + BASE_INDEX) // len(NOTE_NAMES))
         return (note_name, note_octave)
+
+    @staticmethod
+    def note_to_frequency(note_name, note_octave):
+        """Converts a note (e.g. A4) to a frequency
+
+        Args:
+            note_name (str): The note name
+            note_octave (int): The note octave
+
+        Returns:
+            float: The frequency
+        """
+
+        NOTE_NAMES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#', 'A', 'Bb', 'B']
+        SEMITONE = 2**(1/12) # A semitone in just intonation is a ratio of 2^(1/12)
+
+        # A4 is defined as 440 Hz (or 432 Hz if you're that kind of person...)
+        BASE_FREQ = 440
+        BASE_OCTAVE = 4
+        BASE_INDEX = NOTE_NAMES.index('A')
+
+        if note_name not in NOTE_NAMES:
+            print(f"`{note_name}` is not a valid note name. Please choose one of {NOTE_NAMES}. Returning 440Hz (A4)")
+            return BASE_FREQ
+
+        # Find how many semitones from A4 we are
+        semitones_from_base = (NOTE_NAMES.index(note_name) - BASE_INDEX) + 12*(note_octave - BASE_OCTAVE)
+        
+        ratio = SEMITONE ** semitones_from_base
+        freq = BASE_FREQ * ratio
+        return freq
 
     @property
     def start_time(self):
