@@ -1,6 +1,7 @@
 import numpy as np
 import scipy.signal
 import matplotlib.pyplot as plt
+from note import Note
 
 def detect_peaks(Zxx, f, **kwargs):
     """Detects peaks in a column of an STFT spectrogram
@@ -52,3 +53,35 @@ def plot_peaks(Zxx, f, t, title="Peaks", **kwargs):
     plt.xlabel("Time (s)")
     plt.ylabel("Frequency (Hz)")
     plt.show()
+
+def find_notes(Zxx, f, t, freq_thresh, note_gap_time, min_note_length, **kwargs):
+    """Finds the notes in a signal based on its STFT matrix
+
+    Args:
+        Zxx (np.ndarray): Complex STFT values.
+        f (np.ndarray): The frequencies for each row of Zxx.
+        t (np.ndarray): The times for each column of Zxx.
+        freq_thresh (float): The max difference in frequency for a sample to be considered part of a note
+        note_gap_time (float): The max time since a note was last present for a sample to be part of it
+        min_note_length (float): The minimum length for a note
+
+    Returns:
+        list(note.Note): The notes in the signal that fit the criteria
+    """
+
+    peak_data = [detect_peaks(Zxx[:, i], f, **kwargs) for i in range(Zxx.shape[1])]
+    notes = []
+    for (peak_amp, peak_freq), time in zip(peak_data, t):
+        fundamental = peak_freq[0]
+        updated_note = False
+        # iterate in reversed order since recent notes are more likely to match
+        for note in reversed(notes):
+            # once updated_note becomes True, we won't update any other ones
+            updated_note = updated_note or note.update(fundamental, time)
+        if not updated_note:
+            # didn't find a matching note, so create a new one
+            new_note = Note(freq_thresh, note_gap_time)
+            new_note.update(fundamental, time)
+            notes.append(new_note)
+
+    return [note for note in notes if note.length > min_note_length]    
