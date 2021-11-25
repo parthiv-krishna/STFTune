@@ -33,7 +33,7 @@ def detect_peaks(Zxx, f, **kwargs):
         
     return peak_amp, peak_freq
 
-def plot_peaks(Zxx, f, t, title="Peaks", **kwargs):
+def plot_peaks(Zxx, f, t, **kwargs):
     """Plots the peaks detected in a given STFT matrix
 
     Args:
@@ -43,6 +43,8 @@ def plot_peaks(Zxx, f, t, title="Peaks", **kwargs):
         title (str, optional): Title for the chart. Defaults to "Peaks".
         kwargs: keyword arguments for scipy.signal.find_peaks
     """
+    title = kwargs.get("title", "Peaks")
+
     peak_data = [detect_peaks(Zxx[:, i], f, **kwargs) for i in range(Zxx.shape[1])]
     plt.figure()
     for (peak_amp, peak_freq), time in zip(peak_data, t):
