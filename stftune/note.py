@@ -24,14 +24,17 @@ class Note:
         self.note_gap_time = note_gap_time
 
     def __str__(self):
+        """Gives the note name and octave (e.g. "A4" for ~440 Hz)"""
+        if self.freq is None:
+            return "??"
+        name, octave = self.frequency_to_note(self.freq)
+        return f"{name}{octave}"
+
+    def __repr__(self):
         """Gives a string representation of the Note"""
         if self.freq is None:
             return "Uninitialized note"
         return f"{self.frequency:.2f} Hz from {self.start_time:.2f}s to {self.end_time:.2f}s"
-
-    def __repr__(self):
-        """Gives a string representation of the Note"""
-        return self.__str__()
 
     def update(self, sample_freq, sample_time):
         """Updates the Note with a new sample
@@ -60,6 +63,33 @@ class Note:
             self.freq = np.mean(self.sample_freqs)
 
         return should_update
+
+    @staticmethod
+    def frequency_to_note(frequency):
+        """Converts a frequency to a note (e.g. A4)
+
+        Args:
+            frequency (float): The frequency
+
+        Returns:
+            note_name: str representing the note name
+            note_octave: int representing the note octave
+        """
+
+        NOTE_NAMES = ['A', 'Bb', 'B', 'C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'G#']
+        SEMITONE = 2**(1/12) # A semitone in just intonation is a ratio of 2^(1/12)
+
+        # A4 is defined as 440 Hz (or 432 Hz if you're that kind of person...)
+        BASE_FREQ = 440
+        BASE_OCTAVE = 4
+
+        # Find how many semitones from A4 we are
+        ratio = frequency / BASE_FREQ
+        semitones_from_base = round(np.log(ratio) / np.log(SEMITONE))
+
+        note_name = NOTE_NAMES[semitones_from_base % len(NOTE_NAMES)]
+        note_octave = BASE_OCTAVE + (semitones_from_base // len(NOTE_NAMES))
+        return (note_name, note_octave)
 
     @property
     def start_time(self):
