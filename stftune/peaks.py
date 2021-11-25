@@ -74,6 +74,8 @@ def find_notes(Zxx, f, t, freq_thresh, note_gap_time, min_note_length, **kwargs)
     peak_data = [detect_peaks(Zxx[:, i], f, **kwargs) for i in range(Zxx.shape[1])]
     notes = []
     for (peak_amp, peak_freq), time in zip(peak_data, t):
+        if (len(peak_freq) == 0):
+            continue
         fundamental = peak_freq[0]
         updated_note = False
         # iterate in reversed order since recent notes are more likely to match
@@ -87,3 +89,22 @@ def find_notes(Zxx, f, t, freq_thresh, note_gap_time, min_note_length, **kwargs)
             notes.append(new_note)
 
     return [note for note in notes if note.length > min_note_length]    
+
+def plot_notes(notes, title="Notes"):
+    """Plots the provided Notes
+
+    Args:
+        notes (list(note.Note)): The notes to plot.
+        title (str, optional): Title for the chart. Defaults to "Notes".
+    """
+    plt.figure()
+    for note in notes:
+        x = [note.start_time, note.end_time]
+        y = [note.frequency, note.frequency]
+        plt.plot(x, y, label=note)
+    
+    plt.title(title)
+    plt.xlabel("Time (s)")
+    plt.ylabel("Frequency (Hz)")
+    plt.legend()
+    plt.show()
