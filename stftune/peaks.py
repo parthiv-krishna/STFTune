@@ -43,7 +43,8 @@ def plot_peaks(Zxx, f, t, **kwargs):
         title (str, optional): Title for the chart. Defaults to "Peaks".
         kwargs: keyword arguments for scipy.signal.find_peaks
     """
-    title = kwargs.get("title", "Peaks")
+    # default to "Peaks"
+    title = kwargs.pop("title", "Peaks")
 
     peak_data = [detect_peaks(Zxx[:, i], f, **kwargs) for i in range(Zxx.shape[1])]
     plt.figure()
