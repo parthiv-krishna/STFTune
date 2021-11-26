@@ -34,8 +34,8 @@ def synthesis(Zxx, fs=44_100):
         x: np.ndarray containing the synthesized signal.
     """
     t, x = scipy.signal.istft(Zxx,
-                                   fs=fs,
-                                   window="hann")
+                              fs=fs,
+                              window="hann")
     
     return x
 
