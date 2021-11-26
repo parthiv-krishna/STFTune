@@ -1,5 +1,6 @@
 import numpy as np
 import samplerate
+from note import Note
 
 def stretch(x, scale_factor, N, overlap, fs=44_100, window=None):
     """Stretches a signal by scale_factor using the phase vocoder algorithm
@@ -9,7 +10,7 @@ def stretch(x, scale_factor, N, overlap, fs=44_100, window=None):
         scale_factor (float): The factor by which to stretch (should be > 1).
         N (int): Chunk size for the phase vocoder algorithm.
         overlap (int): The number of samples of overlap between chunks.
-        fs (int): The sampling frequency in Hz. Defaults to 44_100.
+        fs (int, optional): The sampling frequency in Hz. Defaults to 44_100.
         window (np.ndarray, optional): Window to use, must be of length N. Defaults to None (np.hanning(N)).
 
     Returns:
@@ -24,7 +25,7 @@ def stretch(x, scale_factor, N, overlap, fs=44_100, window=None):
         window = np.hanning(N) # hanning window
 
     if len(window) != N:
-        print(f"Window length should be N!")
+        print(f"Window length should be N! len(window) is {len(window)} but N is {N}.")
         return x
 
     hop_in = N - overlap
@@ -89,8 +90,8 @@ def pitch_shift(x, freq_ratio, fs=44_100, N=2048, overlap=int(2048*0.75), window
 
     Args:
         x (np.ndarray): The input signal.
-        fs (int): The sampling frequency in Hz. Defaults to 44_100.
         freq_ratio (int): The ratio of out_freq/in_freq. E.g. 2 to increase by one octave, 2**(1/12) for one semitone.
+        fs (int, optional): The sampling frequency in Hz. Defaults to 44_100.
         N (int, optional): Chunk size for the phase vocoder algorithm. Defaults to 2048.
         overlap (int, optional): The number of samples of overlap between chunks. Defaults to int(2048*0.75).
         window (np.ndarray, optional): Window to use, must be of length N. Defaults to None (np.hanning(N)).
@@ -99,7 +100,40 @@ def pitch_shift(x, freq_ratio, fs=44_100, N=2048, overlap=int(2048*0.75), window
         np.ndarray: The pitch shifted signal.
     """
     # Stretch the signal with phase vocoder
-    stretched = stretch(x, fs, freq_ratio, N, overlap, window)
+    stretched = stretch(x, freq_ratio, N, overlap, fs, window)
     # Resample to actually change the pitch
     resampled = samplerate.resample(np.array(stretched), 1/freq_ratio, "sinc_best")
     return resampled
+
+def retune(x, notes, desired_notes, fs=44_100, N=2048, overlap=int(2048*0.75), window=None):
+    """Retunes a signal while attempting to avoid distortion/artifacts.
+
+    Args:
+        x (np.ndarray): The input signal.
+        notes (list(note.Note)): The notes in the signal.
+        desired_notes (list(tuple)): The desired notes. For example: [('A', 4), ('C', 3), ...].
+        fs (int, optional): The sampling frequency in Hz. Defaults to 44_100.
+        N (int, optional): Chunk size for the phase vocoder algorithm. Defaults to 2048.
+        overlap (int, optional): The number of samples of overlap between chunks. Defaults to int(2048*0.75).
+        window (np.ndarray, optional): Window to use, must be of length N. Defaults to None (np.hanning(N)).
+    """
+
+    result = np.copy(x).astype(np.float32)
+
+    for note, desired_note in zip(notes, desired_notes):
+        curr_freq = note.frequency
+        target_freq = Note.note_to_frequency(*desired_note)
+
+        freq_ratio = target_freq / curr_freq
+
+        start = round(note.start_time * fs) # Convert time to index
+        end = round(note.end_time * fs) + 1 # Add 1 since end is exclusive
+
+        shifted = pitch_shift(x[start:end], freq_ratio, N=N, overlap=overlap, fs=fs, window=window)
+        modified_end = start + len(shifted) # usually the shifted is about 100 samples off in size due to rounding
+        if modified_end > len(result):
+            clip = len(result) - start
+            shifted = shifted[:clip]
+        result[start:modified_end] = shifted * 2**15 # rescale from [-1, 1] to [-2^15, 2^15]
+
+    return result
